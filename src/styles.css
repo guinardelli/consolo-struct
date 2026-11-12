@@ -2723,3 +2723,15 @@ kbd {
 .arrangement-options label:has(input:disabled) {
   color: var(--muted);
 }
+.steel-detail-families {
+  stroke: var(--steel3);
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+.steel-detail-families circle,
+.steel-mounting circle {
+  fill: var(--steel3);
+}
+.steel-mounting {
+  stroke: var(--steel3);
+}
