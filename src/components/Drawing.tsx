@@ -11,6 +11,12 @@ import {
   beamBarPositions,
   beamLayout,
 } from "../detailing/beam";
+import { buildDetail } from "../detailing/model";
+import {
+  barPathData,
+  elevationShapes,
+  sectionCrossings,
+} from "../detailing/projection";
 import { number, type Piece, type GeometryKey } from "../domain/model";
 type Props = {
   piece: Piece;
@@ -124,6 +130,16 @@ export default function Drawing({
   const beam = useMemo(
     () => (beamArrangementActive(p) ? beamLayout(p) : null),
     [p],
+  );
+  // Families shared with the fabrication drawing, projected by one module.
+  const detail = useMemo(() => (rebar ? buildDetail(p) : null), [p, rebar]);
+  const shapes = useMemo(
+    () => (detail ? elevationShapes(detail) : []),
+    [detail],
+  );
+  const crossings = useMemo(
+    () => (detail ? sectionCrossings(detail) : []),
+    [detail],
   );
   const s = Math.min(480 / (g.columnWidth + g.length), 340 / (g.height + 80));
   const sectionLeft = 400 - (g.width * s) / 2;
@@ -310,6 +326,22 @@ export default function Drawing({
                     ))}
                   </g>
                 )}
+                {crossings.length > 0 && (
+                  <g
+                    className="steel-mounting"
+                    data-testid="mounting-section"
+                    strokeWidth="1"
+                  >
+                    {crossings.map((c, i) => (
+                      <circle
+                        key={i}
+                        cx={sectionLeft + c.lateral * s}
+                        cy={140 + c.depth * s}
+                        r={Math.max(3, (c.bar.diameter * s) / 2)}
+                      />
+                    ))}
+                  </g>
+                )}
                 <g {...groupProps("N2")} strokeWidth={s}>
                   {stitchLevels.map((y, t) => (
                     <g key={t}>
@@ -480,6 +512,44 @@ export default function Drawing({
                           />
                         ))}
                 </g>
+                {shapes.length > 0 && (
+                  <g
+                    className="steel-detail-families"
+                    data-testid="detail-families"
+                    fill="none"
+                    strokeWidth="3"
+                  >
+                    {shapes.map((shape, i) =>
+                      shape.kind === "path" ? (
+                        <path
+                          key={i}
+                          data-family={shape.bar.family}
+                          d={barPathData(shape.path, X, Y, s)}
+                        >
+                          <title>{shape.bar.description}</title>
+                        </path>
+                      ) : shape.kind === "line" ? (
+                        <path
+                          key={i}
+                          data-family={shape.bar.family}
+                          d={`M${X(shape.a.x)} ${Y(shape.a.y)}L${X(shape.b.x)} ${Y(shape.b.y)}`}
+                        >
+                          <title>{shape.bar.description}</title>
+                        </path>
+                      ) : (
+                        <circle
+                          key={i}
+                          data-family={shape.bar.family}
+                          cx={X(shape.center.x)}
+                          cy={Y(shape.center.y)}
+                          r={Math.max(3, (shape.bar.diameter * s) / 2)}
+                        >
+                          <title>{shape.bar.description}</title>
+                        </circle>
+                      ),
+                    )}
+                  </g>
+                )}
                 {beam && (
                   <path
                     className="steel-positive"
