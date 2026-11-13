@@ -154,9 +154,12 @@ describe("Concreto excedente — opção manter/remover", () => {
     const profile = concreteProfile(p);
     const keptDetail = buildDetail(base),
       cutDetail = buildDetail(p);
-    expect(cutDetail.issues.filter((i) => i.severity === "error")).toEqual(
-      keptDetail.issues.filter((i) => i.severity === "error"),
-    );
+    // N4 is new and can require a longer front bend after cutting; keep all prior errors.
+    expect(
+      cutDetail.issues.filter(
+        (i) => i.severity === "error" && !i.code.startsWith("constructive-"),
+      ),
+    ).toEqual(keptDetail.issues.filter((i) => i.severity === "error"));
     const heights = (d: typeof keptDetail) =>
       d.bars.filter((b) => b.family === "stirrup").map((b) => b.height);
     heights(cutDetail).forEach((h, i) =>

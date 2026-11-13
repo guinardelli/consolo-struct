@@ -116,7 +116,7 @@ test("edita a cota 3D e mantém elevação, arquivo e histórico sincronizados",
     .click();
   const file = await event;
   const saved = JSON.parse(await readFile((await file.path())!, "utf8"));
-  expect(saved.schemaVersion).toBe(4);
+  expect(saved.schemaVersion).toBe(5);
   expect(saved.pieces[0].geometry.length).toBe(325);
   await page
     .locator(".document-tabs")

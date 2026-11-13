@@ -15,7 +15,7 @@ import { cantileverFixture, shortFixture } from "./fixtures";
 const strut = (p: Piece) => calculate(p).checks.find((c) => c.id === "strut")!;
 
 describe("Critério selecionável do limite da biela — issue #5", () => {
-  it("mantém fcd2 para peças novas e arquivos antigos, sem mudar o esquema 4", () => {
+  it("mantém fcd2 para peças novas e arquivos antigos, com os padrões após migrar para esquema 5", () => {
     expect(defaultDesign().strutLimit).toBe("fcd2");
     expect(newPiece(1).design.strutLimit).toBe("fcd2");
     const old = JSON.parse(JSON.stringify(exampleProject()));
@@ -23,7 +23,7 @@ describe("Critério selecionável do limite da biela — issue #5", () => {
       delete piece.design.strutLimit;
     });
     const opened = decodeProject(JSON.stringify(old));
-    expect(opened.schemaVersion).toBe(4);
+    expect(opened.schemaVersion).toBe(5);
     expect(
       opened.pieces.every((piece) => piece.design.strutLimit === "fcd2"),
     ).toBe(true);

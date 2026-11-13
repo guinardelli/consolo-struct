@@ -77,6 +77,7 @@ function BeamMemory({ c }: { c: CaseResult }) {
     ["(asw/s) necessário (Vc = 0)", v.beam_stirrupRateRequired * 1000, "mm²/m"],
     ["(asw/s) mínimo", v.beam_stirrupRateMinimum * 1000, "mm²/m"],
     ["Atransv necessária", v.beam_transverseRequired, "mm²"],
+    ["N3 · área fornecida", v.stirrupProvided, "mm²"],
     ["smáx dos estribos", v.beam_stirrupSpacingLimit, "mm"],
     ["Passo real de N3 (ou L com um estribo)", v.beam_stirrupSpacing, "mm"],
     ...(v.beam_stitchApplies

@@ -1,3 +1,10 @@
+import {
+  constructiveGeometry,
+  transverseGeometry,
+  translatePath,
+  sectionDepths,
+  projectedConstructiveSection,
+} from "./transverse";
 import type { Project } from "../domain/model";
 import { number } from "../domain/model";
 import {
@@ -375,7 +382,7 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
           y + loc.z / 10,
           "ARMADURAS",
         );
-    if (b.family === "stirrup")
+    if (b.family === "stirrup" || b.family === "stirrupInner")
       for (const loc of b.locations)
         line(
           x + loc.x / 10,
@@ -384,7 +391,7 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
           y + (loc.z + b.height) / 10,
           "ARMADURAS",
         );
-    if (b.family === "mounting") barPath(b.path, x, y);
+    if (b.family === "constructive") barPath(b.path, x, y);
     if (b.family === "pin") {
       line(
         x + g.loadOffset / 10,
@@ -411,7 +418,11 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
   const stitchBars = d.bars.filter(
     (b) => b.family === "stitch" || b.family === "lower",
   );
-  const verticalBars = d.bars.filter((b) => b.family === "stirrup");
+  const verticalBars = d.bars.filter(
+    (b) => b.family === "stirrup" || b.family === "stirrupInner",
+  );
+  const constructiveBars = d.bars.filter((b) => b.family === "constructive");
+  const constructive = constructiveGeometry(p);
   const positiveBars = d.bars.filter((b) => b.family === "positive");
   const marks = (bs: Bar[]) =>
     bs.length
@@ -430,7 +441,7 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
   text(
     x - P,
     y + H + 29,
-    `Costura ${marks(stitchBars)} · Estribos ${marks(verticalBars)}${positiveBars.length ? ` · Positiva ${marks(positiveBars)}` : ""}`,
+    `Costura ${marks(stitchBars)} · N3: ${r.stirrupBranches ?? 2} ramos/posição (${marks(verticalBars)}) · Construtiva ${marks(constructiveBars)}${positiveBars.length ? ` · Positiva ${marks(positiveBars)}` : ""}`,
     2.2,
   );
   if (beam)
@@ -448,12 +459,34 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
     : H - (slope * cutDepth) / 10;
   text(sectionX, y - 8, `CORTE A-A / x=${cm(cutDepth)} cm`, 2.8);
   rect(sectionX, y, B, sectionH);
-  if (sectionBar)
-    barPath(
-      sectionBar.path,
-      sectionX + (g.cover + r.stirrupDiameter / 2) / 10,
-      y + (g.cover + r.stirrupDiameter / 2) / 10,
+  const sectionPair = transverseGeometry(p, cutDepth);
+  if (sectionPair.branches === 4)
+    text(
+      sectionX,
+      y - 4,
+      `N3G projetado de x=${cm(sectionPair.sections[1].x)} cm; N4 no plano de cada ramo`,
+      1.8,
     );
+  for (const section of sectionPair.sections)
+    barPath(
+      translatePath(
+        section.path,
+        section.offset,
+        g.cover + r.stirrupDiameter / 2,
+      ),
+      sectionX,
+      y,
+    );
+  for (const { v, depth } of projectedConstructiveSection(
+    constructive,
+    sectionPair.sections,
+  ))
+    entities.push({
+      type: "circle",
+      center: { x: sectionX + v / 10, y: y + depth / 10 },
+      radius: constructive.diameter / 20,
+      layer: "ARMADURAS",
+    });
   for (const b of positiveBars) {
     // Depth of the sloped bottom chord at the section, inside the stirrup.
     const depth =
@@ -594,16 +627,26 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
         true,
       );
   }
-  for (const b of verticalBars)
-    for (const loc of b.locations)
-      line(
-        x + loc.x / 10,
-        planY + g.cover / 10,
-        x + loc.x / 10,
-        planY + B - g.cover / 10,
-        "ARMADURAS",
-        true,
-      );
+  for (const v of constructive.positions) {
+    const xs = samplePath(constructive.path).map((pt) => pt.x);
+    line(
+      x + Math.min(...xs) / 10,
+      planY + v / 10,
+      x + Math.max(...xs) / 10,
+      planY + v / 10,
+      "ARMADURAS",
+      true,
+    );
+  }
+  for (const section of transverseGeometry(p).sections)
+    line(
+      x + section.x / 10,
+      planY + section.offset / 10,
+      x + section.x / 10,
+      planY + (section.offset + section.width) / 10,
+      "ARMADURAS",
+      true,
+    );
   for (const b of d.bars.filter((b) => b.family === "welded")) {
     line(
       x + b.locations[0].x / 10,
@@ -713,6 +756,14 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
             layer: "ARMADURAS",
           });
       }
+  for (const v of constructive.positions)
+    for (const depth of sectionDepths(constructive.path, g.loadOffset))
+      entities.push({
+        type: "circle",
+        center: { x: sectionX + v / 10, y: planY + depth / 10 },
+        radius: constructive.diameter / 20,
+        layer: "ARMADURAS",
+      });
   if (s.pins)
     for (let i = 0; i < s.pins; i++) {
       const py = pinCenters(p)[i] / 10;
@@ -993,14 +1044,14 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
       }
     }
     text(cardX, cardY + card.h - 10, b.note.slice(0, 115), 2.05);
-    if (b.family === "stirrup")
+    if (b.family === "stirrup" || b.family === "stirrupInner")
       text(
         cardX,
         cardY + card.h - 5,
         `Eixo x=${b.locations.map((v) => cm(v.x)).join(" / ")} cm a partir da face do suporte.`,
         2.05,
       );
-    if (b.family === "mounting")
+    if (b.family === "constructive")
       text(
         cardX,
         cardY + card.h - 5,
@@ -1024,6 +1075,7 @@ export function pieceDrawing(project: Project, d: Detail): Drawing {
   text(10, bottom, "NOTAS DE DETALHAMENTO E CONFERÊNCIA", 2.8);
   const safety = materialSafety(q);
   const notes = [
+    `N3: ${r.stirrupBranches ?? 2} ramos efetivos por posição; ${r.stirrupBranches === 4 ? "estribo externo + grampo interno" : "estribo externo"}. N4: ${r.stirrupBranches ?? 2} barras construtivas Ø${number(r.constructiveDiameter ?? 8, 1)} mm, sem contribuição resistente. N5 fendilhamento e N6 suspensão exigem detalhamento próprio.`,
     `Responsável técnico: ${project.author || "não informado"}. Cliente: ${project.client || "não informado"}. Revisão ${s.revision || "R00"}.`,
     "Desenhos soltos: geometria e formas em centímetros; diâmetros das barras em milímetros. CAD em escala real 1:1; PDF em escala nominal 1:10 ao imprimir a 100%.",
     "Mandris e ganchos: NBR 6118:2026, 9.4.2.3, tabelas 9.1 e 9.2 e 9.4.6.1. Estribos representados pela projeção nominal com fechamento de ganchos fora do plano.",

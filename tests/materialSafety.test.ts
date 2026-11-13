@@ -1,3 +1,4 @@
+import { legacyN4Labels } from "./reference/legacy-n4-labels";
 import { describe, expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import { designSchema } from "../src/domain/design";
@@ -17,7 +18,8 @@ import { suggestReinforcement } from "../src/domain/autodesign";
 
 describe("Coeficientes dos materiais — resistências em MPa", () => {
   // Resultados completos capturados antes desta alteração, no upstream 41c3a12.
-  // Excluem-se somente os quatro novos campos de metadados de coeficientes.
+  // A fixture mantém campos posteriores ausentes e normaliza os rótulos de N4,
+  // além dos metadados de coeficientes/ancoragem já normalizados anteriormente.
   it.each([
     [
       "friction",
@@ -47,6 +49,8 @@ describe("Coeficientes dos materiais — resistências em MPa", () => {
         p.geometry.length = p.geometry.loadOffset + 90;
       }
       const legacy = JSON.parse(JSON.stringify(p));
+      delete legacy.rebar.stirrupBranches;
+      delete legacy.rebar.constructiveDiameter;
       delete legacy.design.gammaC;
       delete legacy.design.gammaS;
       // Projeto anterior ao recorte: campo ausente, sem normalizar o fingerprint.
@@ -64,17 +68,19 @@ describe("Coeficientes dos materiais — resistências em MPa", () => {
         "anchorRatioFloor",
         "anchorWeldedBar",
       ]);
-      const raw = JSON.stringify(calculate(legacy), (key, value) =>
-        metadata.has(key)
-          ? undefined
-          : value?.id === "anchorage"
-            ? {
-                ...value,
-                formula:
-                  "lb=max(φfyd/(4fbd);25φ); lb,nec=max(αlb As,calc/As,ef;0,3lb;10φ;100)",
-                detail: value.detail.replace(/α = .*lb = [\d.,]+ mm\./, ""),
-              }
-            : value,
+      const raw = JSON.stringify(
+        legacyN4Labels(calculate(legacy)),
+        (key, value) =>
+          metadata.has(key)
+            ? undefined
+            : value?.id === "anchorage"
+              ? {
+                  ...value,
+                  formula:
+                    "lb=max(φfyd/(4fbd);25φ); lb,nec=max(αlb As,calc/As,ef;0,3lb;10φ;100)",
+                  detail: value.detail.replace(/α = .*lb = [\d.,]+ mm\./, ""),
+                }
+              : value,
       );
       expect(createHash("sha256").update(raw).digest("hex")).toBe(expected);
     },

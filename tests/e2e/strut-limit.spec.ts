@@ -93,7 +93,7 @@ test("Configurações abre a peça sem mutação; edição participa do históri
     page.getByText("Cálculo desatualizado", { exact: true }),
   ).toBeVisible();
   const changed = await saved(page);
-  expect(changed.schemaVersion).toBe(4);
+  expect(changed.schemaVersion).toBe(5);
   expect(changed.pieces[0].design.strutLimit).toBe("fcd3");
   expect(changed.pieces[1]).toEqual(before.pieces[1]);
   await page.getByRole("button", { name: "Desfazer", exact: true }).click();

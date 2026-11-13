@@ -57,6 +57,12 @@ describe("enquadramento da seção A–A com d’", () => {
   });
 
   it("não altera a elevação quando somente a largura muda", () => {
-    expect(render(1000, 1, false)).toBe(render(300, 1, false));
+    // N4 now records its actual transverse position, which changes with width.
+    // Compare the complete visible geometry, excluding only that metadata.
+    const geometry = (svg: string) =>
+      svg.replace(/ data-transverse-position="[^"]*"/g, "");
+    expect(geometry(render(1000, 1, false))).toBe(
+      geometry(render(300, 1, false)),
+    );
   });
 });

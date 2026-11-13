@@ -324,24 +324,24 @@ export default function DesignPanel({
         )}
         {num(
           "splittingCount",
-          "N4 · fendilhamento transversal",
+          "N5 · fendilhamento transversal",
           "estribos",
           1,
           0,
           100,
         )}
-        {num("splittingDiameter", "N4 · diâmetro", "mm", 1, 5, 25)}
+        {num("splittingDiameter", "N5 · diâmetro", "mm", 1, 5, 25)}
         {num(
           "suspensionCount",
-          "N5 · suspensão da carga indireta",
+          "N6 · suspensão da carga indireta",
           "estribos",
           1,
           0,
           100,
         )}
-        {num("suspensionDiameter", "N5 · diâmetro", "mm", 1, 5, 25)}
+        {num("suspensionDiameter", "N6 · diâmetro", "mm", 1, 5, 25)}
         <small>
-          Dois ramos efetivos por estribo fechado. N4 e N5 são áreas exclusivas:
+          Dois ramos efetivos por estribo fechado. N5 e N6 são áreas exclusivas:
           não se contabilizam novamente em N2 ou N3. A representação gráfica
           continua esquemática.
         </small>

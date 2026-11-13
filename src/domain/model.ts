@@ -20,6 +20,8 @@ export const rebarSchema = z.object({
   stitchDiameter: z.number().min(5).max(25),
   stirrupCount: z.number().int().min(1).max(100),
   stirrupDiameter: z.number().min(5).max(25),
+  stirrupBranches: z.union([z.literal(2), z.literal(4)]).default(2),
+  constructiveDiameter: z.number().finite().min(5).max(25).default(8),
 });
 export const pieceSchema = z.object({
   id: z.string().min(1).max(80),
@@ -42,7 +44,7 @@ export const pieceSchema = z.object({
 });
 export const projectSchema = z.object({
   format: z.literal("lumeconsolo"),
-  schemaVersion: z.literal(4),
+  schemaVersion: z.literal(5),
   name: z.string().min(1).max(120),
   client: z.string().max(120),
   author: z.string().max(120),
@@ -136,6 +138,8 @@ export function newPiece(index: number): Piece {
       stitchDiameter: 6.3,
       stirrupCount: 5,
       stirrupDiameter: 6.3,
+      stirrupBranches: 2,
+      constructiveDiameter: 8,
     },
   };
 }
@@ -159,7 +163,7 @@ export function exampleProject(): Project {
   second.rebar.tieDiameter = 16;
   return {
     format: "lumeconsolo",
-    schemaVersion: 4,
+    schemaVersion: 5,
     name: "Pavilhão Horizonte",
     client: "Projeto de demonstração",
     author: "",
@@ -193,12 +197,27 @@ export function decodeProject(text: string): Project {
         if (!g.success) return p;
         return {
           ...p,
-          design: defaultDesign(
-            g.data.width,
-            g.data.length,
-            g.data.columnWidth,
-            g.data.cover,
-          ),
+          design: {
+            ...defaultDesign(
+              g.data.width,
+              g.data.length,
+              g.data.columnWidth,
+              g.data.cover,
+            ),
+            // Preserve semantic special reinforcement if a v1 producer supplied it.
+            ...("design" in p && p.design && typeof p.design === "object"
+              ? Object.fromEntries(
+                  Object.entries(p.design).filter(([key]) =>
+                    [
+                      "splittingCount",
+                      "splittingDiameter",
+                      "suspensionCount",
+                      "suspensionDiameter",
+                    ].includes(key),
+                  ),
+                )
+              : {}),
+          },
         };
       }),
     };
@@ -230,10 +249,40 @@ export function decodeProject(text: string): Project {
   ) {
     data = { ...data, schemaVersion: 4 };
   }
+  // N4 is mandatory in schema 5; obsolete mounting choices cannot suppress it.
+  if (
+    data &&
+    typeof data === "object" &&
+    "schemaVersion" in data &&
+    data.schemaVersion === 4 &&
+    "pieces" in data &&
+    Array.isArray(data.pieces)
+  ) {
+    data = {
+      ...data,
+      schemaVersion: 5,
+      pieces: data.pieces.map((p: unknown) =>
+        p &&
+        typeof p === "object" &&
+        "rebar" in p &&
+        p.rebar &&
+        typeof p.rebar === "object"
+          ? {
+              ...p,
+              rebar: {
+                ...p.rebar,
+                stirrupBranches: 2,
+                constructiveDiameter: 8,
+              },
+            }
+          : p,
+      ),
+    };
+  }
   const parsed = projectSchema.safeParse(data);
   if (!parsed.success)
     throw new Error(
-      "Projeto inválido ou versão não suportada. Use um arquivo .lume.json compatível (esquemas 1, 2, 3 ou 4).",
+      "Projeto inválido ou versão não suportada. Use um arquivo .lume.json compatível (esquemas 1, 2, 3, 4 ou 5).",
     );
   return parsed.data;
 }

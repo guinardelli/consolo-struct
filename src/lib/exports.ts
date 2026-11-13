@@ -1,3 +1,5 @@
+import { constructiveGeometry } from "../detailing/transverse";
+import { steelMass } from "../detailing/geometry";
 import {
   calculate,
   classificationLabels,
@@ -135,10 +137,18 @@ export function toCsv(project: Project) {
       "Costura superior necessaria (cm2)",
       "Ancoragem necessaria (cm)",
       "Combinacao do tirante",
+      "N3 ramos efetivos por posicao",
+      "N3 area fornecida (mm2)",
+      "N4 barras por peca",
+      "N4 diametro (mm)",
+      "N4 C unitario (cm)",
+      "N4 massa total (kg)",
     ],
   ];
   for (const p of project.pieces) {
     const r = calculate(p);
+    const n4 = constructiveGeometry(p);
+    const n4Cut = Math.ceil(n4.path.length - 1e-7);
     rows.push([
       p.name,
       p.description,
@@ -164,6 +174,20 @@ export function toCsv(project: Project) {
         ? ""
         : number(r.values.anchorRequired / 10, 3),
       r.governingCase,
+      p.rebar.stirrupBranches ?? 2,
+      number(
+        area(
+          (p.rebar.stirrupBranches ?? 2) * p.rebar.stirrupCount,
+          p.rebar.stirrupDiameter,
+        ),
+        3,
+      ),
+      n4.branches,
+      n4.diameter,
+      n4.path.valid ? number(n4Cut / 10, 1) : "",
+      n4.path.valid
+        ? number(steelMass(n4Cut, n4.diameter) * n4.branches * p.quantity, 3)
+        : "",
     ]);
   }
   return "\uFEFF" + rows.map((r) => r.map(csvCell).join(";")).join("\r\n");
@@ -300,7 +324,7 @@ export async function toPdf(project: Project, p: Piece): Promise<Uint8Array> {
       `Concreto excedente: remover. Situacao: ${concreteProfile(p).status === "removed" ? "recorte aplicado abaixo da biela" : "recorte nao aplicado, geometria original"}; ver nota excessConcrete.`,
     );
   line(
-    `fck=${p.materials.fck} MPa; fyk=${p.materials.fyk} MPa. N1=${p.rebar.tieCount} ramos phi ${p.rebar.tieDiameter}; N2=${p.rebar.stitchCount} estribos phi ${p.rebar.stitchDiameter}; N3=${p.rebar.stirrupCount} estribos phi ${p.rebar.stirrupDiameter}.`,
+    `fck=${p.materials.fck} MPa; fyk=${p.materials.fyk} MPa. N1=${p.rebar.tieCount} ramos phi ${p.rebar.tieDiameter}; N2=${p.rebar.stitchCount} estribos phi ${p.rebar.stitchDiameter}; N3=${p.rebar.stirrupCount} posicoes, ${p.rebar.stirrupBranches ?? 2} ramos efetivos, phi ${p.rebar.stirrupDiameter}; N4=${p.rebar.stirrupBranches ?? 2} barras phi ${p.rebar.constructiveDiameter ?? 8}, sem contribuicao resistente.`,
   );
   line(
     `Tirante: ${steelLabel(p.materials.fyk)}; transversal: ${steelLabel(p.design.fykTransverse)}.`,
@@ -309,6 +333,11 @@ export async function toPdf(project: Project, p: Piece): Promise<Uint8Array> {
   line(
     `Acoes principais: V=${num(p.loads.vertical)} N; H=${num(p.loads.horizontal)} N; gammaf=${p.loads.gamma}. Os parametros completos constam do apendice.`,
   );
+  const n4 = constructiveGeometry(p);
+  line(
+    `N4 construtiva: face inferior com dobra frontal e prolongamento no suporte; ${n4.branches} barras phi ${n4.diameter} mm; C unitario=${number(Math.ceil(n4.path.length - 1e-7) / 10, 1)} cm; massa total=${number(steelMass(Math.ceil(n4.path.length - 1e-7), n4.diameter) * n4.branches * p.quantity, 3)} kg. Consultar forma e pendencias no detalhamento.`,
+  );
+  n4.problems.forEach((message) => line(message, 10, true));
   title("3. Envelope de verificacoes");
   line(
     `Combinacao determinante da area do tirante: ${result.governingCase || "--"}. Cada verificacao e envelopada separadamente; nao se misturam V e H de casos diferentes.`,

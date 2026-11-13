@@ -54,7 +54,7 @@ describe("Composição do recorte com armaduras e peso próprio", () => {
   });
 
   it.each([5, 6.3, 10, 16])(
-    "mantém cobrimento nas dobras do porta-estribos φ%s",
+    "mantém cobrimento nas dobras de N4 φ%s",
     (diameter) => {
       const p = cutPiece();
       Object.assign(p.geometry, {
@@ -63,10 +63,10 @@ describe("Composição do recorte com armaduras e peso próprio", () => {
         length: 450,
         loadOffset: 390,
       });
-      p.detailing.mountingDiameter = diameter;
+      p.rebar.constructiveDiameter = diameter;
       const profile = concreteProfile(p),
         detail = buildDetail(p);
-      const mounting = detail.bars.find((b) => b.family === "mounting")!;
+      const mounting = detail.bars.find((b) => b.family === "constructive")!;
       expect(mounting.path.valid).toBe(true);
       for (const point of samplePath(mounting.path, 100)) {
         if (point.x < 0 || point.x > p.geometry.length) continue;

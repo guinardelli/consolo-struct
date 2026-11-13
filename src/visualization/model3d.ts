@@ -1,11 +1,13 @@
+import {
+  constructiveGeometry,
+  transverseGeometry,
+  translatePath,
+} from "../detailing/transverse";
+import { samplePath } from "../detailing/geometry";
 import { number, type GeometryKey, type Piece } from "../domain/model";
 import { tieLayout } from "../domain/engine";
 import { reactionGeometry, upperStitchLayout } from "../domain/theory";
-import {
-  bottomOffsetDepth,
-  bottomReach,
-  concreteProfile,
-} from "../domain/profile";
+import { bottomReach, concreteProfile } from "../domain/profile";
 import {
   beamArrangementActive,
   beamBarPositions,
@@ -32,8 +34,8 @@ export interface Load3D {
   value: number;
 }
 export interface SteelPath {
-  /** N4: positive bars of the beam arrangement (detailing only, not editable in the inspector). */
-  id: "N1" | "N2" | "N3" | "N4";
+  /** N4 is mandatory constructive steel; P1 is the independent beam positive family. */
+  id: "N1" | "N2" | "N3" | "N4" | "P1";
   points: Point3[];
   diameter: number;
 }
@@ -229,7 +231,7 @@ export function buildSceneModel(p: Piece): SceneModel {
       beam.bottom.diameter,
     ))
       steel.push({
-        id: "N4",
+        id: "P1",
         diameter: beam.bottom.diameter,
         points: beam.bottom.vertices.map(
           (pt) => [pt.x, v - side, -pt.y] as Point3,
@@ -284,29 +286,25 @@ export function buildSceneModel(p: Piece): SceneModel {
   if (reaction.a / d <= 0.5)
     for (let i = 0; i < q.lowerStitchCount; i++)
       costura(dPrime + (2 * d) / 3 + ((i + 0.5) * d) / 3 / q.lowerStitchCount);
-  for (let i = 0; i < r.stirrupCount; i++) {
-    const x = g.cover + ((i + 0.5) * (g.length - 2 * g.cover)) / r.stirrupCount;
-    const y = side - g.cover - r.stirrupDiameter / 2;
-    const top = -g.cover - r.stirrupDiameter / 2;
-    const bottom =
-      concrete.status === "removed"
-        ? -bottomOffsetDepth(concrete, x, g.cover + r.stirrupDiameter / 2)
-        : -g.height +
-          ((g.height - g.tipHeight) * x) / g.length +
-          g.cover +
-          r.stirrupDiameter / 2;
+  const transverse = transverseGeometry(p);
+  for (const section of transverse.sections)
     steel.push({
       id: "N3",
       diameter: r.stirrupDiameter,
-      points: [
-        [x, -y, top],
-        [x, y, top],
-        [x, y, bottom],
-        [x, -y, bottom],
-        [x, -y, top],
-      ],
+      points: samplePath(
+        translatePath(section.path, section.offset, transverse.stirrupOffset),
+        24,
+      ).map((pt) => [section.x, pt.x - side, -pt.y] as Point3),
     });
-  }
+  const constructive = constructiveGeometry(p);
+  for (const v of constructive.positions)
+    steel.push({
+      id: "N4",
+      diameter: constructive.diameter,
+      points: samplePath(constructive.path, 24).map(
+        (pt) => [pt.x, v - side, -pt.y] as Point3,
+      ),
+    });
   const cap = Math.max(60, g.height * 0.2);
   const support = {
     center: [-g.columnWidth / 2, 0, -g.height / 2] as Point3,

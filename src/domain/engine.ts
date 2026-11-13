@@ -606,7 +606,8 @@ function calculateCase(
   const stirrupRequired = q.literatureRecommendations
     ? Math.max(stirrupNormative, stirrupLiterature)
     : stirrupNormative;
-  const stirrupProvided = 2 * area(r.stirrupCount, r.stirrupDiameter);
+  const stirrupProvided =
+    (r.stirrupBranches ?? 2) * area(r.stirrupCount, r.stirrupDiameter);
   const suspensionRequired = q.loadType === "indirect" ? vertical / m.fywd : 0;
   const suspensionProvided = 2 * area(q.suspensionCount, q.suspensionDiameter);
   const lateralMargin = (b - q.bearingWidth) / 2;
@@ -802,7 +803,7 @@ function calculateCase(
         "mm²",
         "Vc = 0; (asw/s)nec = Vsd/(0,9 d fywd); (asw/s)mín = 0,2 fctm/fywk · b; Atransv,nec = max(máx((asw/s)nec; (asw/s)mín)·L; 0,0015 b h)",
         refs.beamShear,
-        "N3 conta estribos fechados, com dois ramos, distribuídos ao longo do comprimento L do consolo. A parcela do concreto é desconsiderada nesta faixa de a/d.",
+        `N3: ${r.stirrupBranches ?? 2} ramos efetivos por posição (estribo externo${r.stirrupBranches === 4 ? " + grampo interno" : ""}), distribuídos ao longo de L. As,prov = ramos × quantidade × πφ²/4. A parcela do concreto é desconsiderada nesta faixa de a/d.`,
       ),
     );
     add(
@@ -1055,7 +1056,7 @@ function calculateCase(
         "mm²",
         "As,vert ≥ max(0,0015 b h [direta]; 0,2 As,tir [se El Debs ativado])",
         "NBR 9062 §7.3.7.2",
-        "N3 conta estribos fechados, com dois ramos. Complemento de El Debs p.129(e) quando ativado; N5 de suspensão permanece independente, sem dupla contagem.",
+        `N3: ${r.stirrupBranches ?? 2} ramos efetivos por posição (estribo externo${r.stirrupBranches === 4 ? " + grampo interno" : ""}). As,prov = ramos × quantidade × πφ²/4. Complemento de El Debs p.129(e) quando ativado; N6 de suspensão permanece independente, sem dupla contagem.`,
       ),
     );
   if (q.loadType === "indirect")
@@ -1080,7 +1081,7 @@ function calculateCase(
       "mm²",
       "As,fend = 0,30 Vd(1−beff/b)/fywd, se afastamento lateral > c",
       "NBR 9062 §7.3.3.3; El Debs §4.3.1.1, p.115–116",
-      "Modelo de bloco parcialmente carregado centrado, na direção transversal. N4 é armadura exclusiva; não é somada novamente à costura.",
+      "Modelo de bloco parcialmente carregado centrado, na direção transversal. N5 é armadura exclusiva; não é somada novamente à costura.",
     ),
   );
   add(
@@ -1332,7 +1333,7 @@ function calculateCase(
         note(
           "frontSplitting",
           "Fendilhamento no plano da alça",
-          "A condição de dispensa 3c ≤ a2 ≤ 3(c+φ), sob carga direta, não está satisfeita. É necessária análise do fendilhamento no plano horizontal da alça; a armadura N4 transversal não substitui essa análise.",
+          "A condição de dispensa 3c ≤ a2 ≤ 3(c+φ), sob carga direta, não está satisfeita. É necessária análise do fendilhamento no plano horizontal da alça; a armadura N5 transversal não substitui essa análise.",
           "NBR 9062 §7.3.3.5",
         ),
       );
@@ -1621,7 +1622,7 @@ export function calculate(p: Piece): CalculationResult {
         : "Complementos de El Debs §3.5.1 desativados. Modelos auxiliares são comparativos e não alteram o envelope normativo/documentado da versão anterior.",
       "a informado posiciona o centro físico do apoio. A posição de cálculo da reação e seu deslocamento são registrados separadamente; o braço de H é d′+hapoio.",
       "A armadura mínima e a costura usam o envelope documentado das normas e dos complementos bibliográficos, sem copiar limites históricos revogados.",
-      "N1 é número de ramos longitudinais. N2/N3/N4/N5 são estribos fechados com dois ramos efetivos e ancorados; áreas informadas de suporte/confinamento são efetivas, não áreas brutas arbitrárias.",
+      `N1 conta ramos longitudinais; N2 mantém dois ramos efetivos por estribo. N3 tem ${p.rebar.stirrupBranches ?? 2} ramos efetivos por posição. N4 construtiva: ${p.rebar.stirrupBranches ?? 2} barras Ø${p.rebar.constructiveDiameter ?? 8} mm, sem contribuição resistente. N5 (fendilhamento) e N6 (suspensão) mantêm dois ramos efetivos e áreas exclusivas; áreas de suporte/confinamento são efetivas.`,
       "Não há verificação automática de ELS/fissuração, fadiga, torção espacial, estabilidade global, pinos/chumbadores, soldabilidade ou aparelho elastomérico. O desenho e o DXF ainda não são detalhamento executivo.",
     ],
   };

@@ -411,33 +411,17 @@ function Detailing({
                     onChange={(v) => patch({ beamBottomDiameter: v })}
                   />
                   <p className="detail-tip">
-                    No modo viga, a armadura positiva substitui o porta-estribos
-                    inferior e não entra como armadura resistente.
+                    No modo viga, a positiva é uma família independente (P1),
+                    sem contribuição resistente. N4 permanece obrigatória;
+                    eventuais interferências aparecem nas pendências.
                   </p>
                 </>
-              ) : (
-                <>
-                  <label className="detail-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={piece.detailing.mounting}
-                      onChange={(e) => patch({ mounting: e.target.checked })}
-                    />{" "}
-                    Porta-estribos inferior (2 barras)
-                  </label>
-                  {piece.detailing.mounting && (
-                    <NumericField
-                      label="Bitola do porta-estribos"
-                      unit="mm"
-                      min={5}
-                      max={16}
-                      step={0.1}
-                      value={piece.detailing.mountingDiameter}
-                      onChange={(v) => patch({ mountingDiameter: v })}
-                    />
-                  )}
-                </>
-              )}
+              ) : null}
+              <p className="detail-tip">
+                N4 construtiva obrigatória: {piece.rebar.stirrupBranches} barras
+                Ø{number(piece.rebar.constructiveDiameter, 1)} mm. Configure a
+                bitola na guia Armaduras; a quantidade vem dos ramos de N3.
+              </p>
               <NumericField
                 label="Quantidade de pinos"
                 unit="barras"

@@ -16,7 +16,7 @@ A vista 3D usa as mesmas entradas da Elevação, Seção A–A e motor ELU. Foi 
 | Ver barras internas          | Ativar Translúcido                                          |
 | Camadas                      | Exibir → Cotas, Cargas, Armaduras, Grade                    |
 
-A vista inicial apresenta concreto opaco. A opção Translúcido é independente da camada Armaduras. No modo translúcido, é possível selecionar os grupos N1–N3 clicando nos eixos exibidos. O mouse e o toque controlam a mesma câmera; dois dedos permitem aproximação e pan.
+A vista inicial apresenta concreto opaco. A opção Translúcido é independente da camada Armaduras. No modo translúcido, é possível selecionar os grupos N1–N4 clicando nos eixos exibidos. O mouse e o toque controlam a mesma câmera; dois dedos permitem aproximação e pan.
 
 As cotas permanecem orientadas à tela. Quando sua projeção fica reduzida a um ponto em uma vista ortogonal, a anotação é ocultada. Pequenos deslocamentos com linhas de chamada evitam sobreposição entre rótulos próximos. A câmera pode ser livremente deslocada; F reenquadra o conjunto.
 
@@ -28,7 +28,7 @@ As cotas permanecem orientadas à tela. Quando sua projeção fica reduzida a um
 - O trecho de suporte usa P na direção X. Sua profundidade ilustrativa é b, pois o esquema do projeto não informa outra dimensão transversal do pilar. Sua altura é apenas um trecho de contexto, sem representar a altura integral do elemento.
 - O retângulo do apoio indica a área efetiva de transmissão. A altura da linha de H é usada para a origem das setas; ela não é transformada em uma espessura física desconhecida do aparelho.
 - N1 usa as posições dos ramos/camadas e a altura útil do mesmo arranjo considerado pelo motor. São exibidos eixos longitudinais, sem inventar a geometria das ancoragens.
-- N2/N2b e N3 mostram estribos esquemáticos. N4/N5, dobras, raios de mandril, sobreposições e detalhes executivos continuam sendo tratados na memória/documentação de cálculo, sem certificação pelo 3D.
+- N2/N2b mantêm sua representação esquemática. N3 usa o estribo externo e, com quatro ramos, o grampo interno da geometria de detalhamento. N4 construtiva usa os mesmos eixos com arcos da forma de fabricação, em duas ou quatro posições. A positiva do modo viga é uma família separada P1. N5/N6 não têm representação completa. A visualização não certifica o arranjo ou libera execução.
 
 ## Cargas e interpretação
 
