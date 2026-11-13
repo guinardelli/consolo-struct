@@ -372,7 +372,9 @@ for (const layers of [1, 3]) {
         .getByRole("button", { name: "Ajustar desenho à tela" })
         .click();
       await testInfo.attach(`secao-aa-${layers}-camadas-${theme}`, {
-        body: await canvas.screenshot(),
+        body: await canvas.screenshot({
+          path: testInfo.outputPath(`secao-aa-${layers}-camadas-${theme}.png`),
+        }),
         contentType: "image/png",
       });
     }
@@ -457,7 +459,11 @@ for (const layers of [1, 3]) {
         .click();
       await expectInside();
       await testInfo.attach(`secao-larga-dprime-${layers}-${theme}`, {
-        body: await canvas.screenshot(),
+        body: await canvas.screenshot({
+          path: testInfo.outputPath(
+            `secao-larga-dprime-${layers}-${theme}.png`,
+          ),
+        }),
         contentType: "image/png",
       });
     }
