@@ -876,6 +876,9 @@ h4 {
 .technical-drawing .dimension {
   cursor: pointer;
 }
+.technical-drawing .dimension-derived {
+  cursor: default;
+}
 .dimension path {
   stroke: var(--dimension);
   stroke-width: 1;
@@ -888,12 +891,12 @@ h4 {
   font-size: 14px;
   font-weight: 500;
 }
-.dimension:hover text,
+.dimension:not(.dimension-derived):hover text,
 .dimension-active text {
   fill: var(--accent);
   font-weight: 650;
 }
-.dimension:hover path,
+.dimension:not(.dimension-derived):hover path,
 .dimension-active path {
   stroke: var(--accent);
   stroke-width: 1.5;

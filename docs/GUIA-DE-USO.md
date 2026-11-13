@@ -56,11 +56,15 @@ Para experimentar uma falha conhecida, no exemplo Curto-ELU reduza a ancoragem d
 ## 4. Navegar pelas vistas
 
 - Em 2D: botão central ou Espaço + arrastar para pan; roda para zoom no cursor; `F` enquadra.
-- Clique em uma cota para editar; `Enter` confirma e `Esc` cancela. `Ctrl+Z` desfaz e `Ctrl+Shift+Z` refaz.
+- Clique em uma cota de geometria para editar; `Enter` confirma e `Esc` cancela. `Ctrl+Z` desfaz e `Ctrl+Shift+Z` refaz.
 - Em **Vista 3D**, arraste com o botão esquerdo para orbitar e com central/direito ou Espaço para pan. Use os presets Frontal, Superior, Lateral e Isométrica.
 - Em **Exibir**, use Mostrar cotas, Mostrar cargas, Mostrar armaduras e Mostrar grade. A transparência fica junto à Vista 3D.
 - A árvore pode manter vários consolos expandidos. Expandir não troca a seleção. Clique em ×n para editar a quantidade.
 - Feche abas pelo × e reabra pelo navegador ou faixa de ferramentas. Fechar uma vista preserva o projeto.
+
+Na **Seção A–A** da modelagem, a cota **d’**, à esquerda, indica a distância do topo ao centroide de todas as barras do tirante, em centímetros com uma casa decimal. Com uma camada, termina no eixo das barras; com várias, usa o centroide ponderado pelas quantidades de cada camada, que pode ficar entre elas. O valor acompanha as entradas e o controle **Mostrar cotas**, mesmo com as armaduras ocultas. É uma cota de consulta, sem edição pelo desenho; as cotas **b** e **h** continuam editáveis.
+
+Consulte as [imagens e verificações da cota d’](VALIDACAO-SECAO-AA-DPRIME.md).
 
 A vista 3D e suas armaduras são representações esquemáticas, não análise resistente espacial nem detalhamento executivo. As setas mostram ações de entrada da combinação Principal, sem escala de intensidade. A câmera não altera os dados de cálculo.
 
