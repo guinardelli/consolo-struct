@@ -27,7 +27,7 @@ try {
   partial.design.reactionPosition = "outerThird";
   const project = {
     format: "lumeconsolo",
-    schemaVersion: 4,
+    schemaVersion: 5,
     name: "Base Consolo — comparação 0.7",
     client: "Casos de estudo para conferência",
     author: "",

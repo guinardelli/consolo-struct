@@ -2723,3 +2723,26 @@ kbd {
 .arrangement-options label:has(input:disabled) {
   color: var(--muted);
 }
+
+.bar-tag.N4 {
+  background: #98621c;
+  color: white;
+}
+.steel-N4 {
+  fill: #98621c;
+}
+.steel-N4:not(.steel-selected):not(:hover) {
+  stroke: #98621c;
+}
+[data-theme="dark"] .steel-N4 {
+  fill: #e5b875;
+}
+[data-theme="dark"] .steel-N4:not(.steel-selected):not(:hover) {
+  stroke: #e5b875;
+}
+.legend-line.N4 {
+  border-color: #98621c;
+}
+[data-theme="dark"] .legend-line.N4 {
+  border-color: #e5b875;
+}

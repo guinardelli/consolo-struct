@@ -42,7 +42,7 @@ test("cotas paramétricas: validação, confirmar, cancelar, histórico e arquiv
   await edit.press("Control+s");
   const download = await downloadEvent;
   const project = JSON.parse(await readFile((await download.path())!, "utf8"));
-  expect(project.schemaVersion).toBe(4);
+  expect(project.schemaVersion).toBe(5);
   expect(project.pieces[0].geometry.width).toBe(440);
   expect(project.pieces[0].geometry.length).toBe(325);
 });

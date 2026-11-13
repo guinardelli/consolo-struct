@@ -31,7 +31,7 @@ try {
     "Pinos da ligação: conferir esforço, embutimento, furação e montagem antes de emitir para execução.";
   const project = {
     format: "lumeconsolo",
-    schemaVersion: 4,
+    schemaVersion: 5,
     name: "Consolos - exemplo de detalhamento",
     client: "Exemplo técnico para conferência",
     author: "",

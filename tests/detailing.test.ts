@@ -157,7 +157,7 @@ describe("Interoperabilidade e arquivos", () => {
       pieces: project.pieces.map(({ detailing: _d, ...p }) => p),
     };
     const converted = decodeProject(JSON.stringify(legacy));
-    expect(converted.schemaVersion).toBe(4);
+    expect(converted.schemaVersion).toBe(5);
     expect(converted.pieces[0].detailing.revision).toBe("R00");
     converted.pieces[0].detailing.notes = "Dobra conferida";
     expect(decodeProject(JSON.stringify(converted))).toEqual(converted);

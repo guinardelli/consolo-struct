@@ -52,7 +52,10 @@ Internamente: **mm, N, MPa = N/mm² e mm²**. Na interface: cm, kN, MPa e cm², 
 - `columnWidth`: dimensão disponível do suporte na direção da ancoragem.
 - N1: ramos longitudinais resistentes. Uma alça horizontal tem dois ramos na mesma camada.
 - N2/N2b: estribos horizontais fechados nos 2/3 d superiores e terço inferior.
-- N3: estribos verticais construtivos; N4: fendilhamento transversal sob apoio; N5: suspensão. Cada estribo contado fornece dois ramos efetivos.
+- N3: posições de armadura vertical, com **2 ou 4 ramos efetivos**, configurados em `rebar.stirrupBranches`. Quatro ramos correspondem a um estribo fechado externo mais um grampo interno da mesma bitola, por posição.
+- `As,N3,prov = ramosN3 × quantidadeN3 × πφ²/4`; a sugestão arredonda para cima `As,N3,req/(ramosN3 × πφ²/4)` e mantém os limites existentes de quantidade e espaçamento. Demanda e distribuição longitudinal não mudam. Cinco posições Ø6,3 resultam em 311,7245310524472 mm² com dois ramos e 623,4490621048944 mm² com quatro.
+- N4 é construtiva obrigatória: `quantidadeN4 = ramosN3`, bitola inicial Ø8 mm em `rebar.constructiveDiameter`. Não é somada a nenhuma capacidade nem dimensionada pela sugestão. Seu ajuste físico pertence às pendências de detalhamento.
+- N5: fendilhamento transversal; N6: suspensão. Mantêm dois ramos efetivos por estribo e os campos `splitting*`/`suspension*`, sem dupla contagem.
 - As áreas de confinamento da ancoragem e de armadura local do suporte são informadas como áreas efetivas, com direção e ancoragem compatíveis. O software não presume sua existência.
 
 ### Altura útil
@@ -114,13 +117,13 @@ Os valores de η1 são os existentes, preservados exatamente conforme a [issue #
 
 O mesmo módulo concentra os fatores de pino da alça, a exigência de gancho de CA-25 e os limites de aplicabilidade de dobramento de CA-60. As fórmulas e bitolas permanecem iguais. A resistência de cálculo continua usando o fyk numérico e os coeficientes dos materiais já adotados. O aço transversal conserva o esquema 500/600 MPa, apresentado pelos mesmos rótulos CA-50/CA-60.
 
-A classe é derivada da leitura de `materials.fyk`, que permanece **numérico** no arquivo; não se grava um novo campo nem se altera o esquema 4. Um valor legado como 420 MPa abre e permanece 420 MPa ao salvar. O seletor mostra **Personalizado (420 MPa), não suportado**, e o motor mantém a mensagem e o estado `unsupported`. A escolha de uma classe válida é explícita e participa de Desfazer/Refazer. Não há arredondamento ou enquadramento automático por faixa.
+A classe é derivada da leitura de `materials.fyk`, que permanece **numérico** no arquivo; não se grava um novo campo de classe. A evolução para o esquema 5 decorre de N3/N4. Um valor legado como 420 MPa abre e permanece 420 MPa ao salvar. O seletor mostra **Personalizado (420 MPa), não suportado**, e o motor mantém a mensagem e o estado `unsupported`. A escolha de uma classe válida é explícita e participa de Desfazer/Refazer. Não há arredondamento ou enquadramento automático por faixa.
 
 Relatório, PDF, desenhos e quadro de aço usam os rótulos do módulo, sem inventar classes como CA-42 para valores personalizados. A prévia geométrica de mandris de valores legados mantém seu comportamento histórico, sem atribuir uma classe nem tornar o aço calculável. Essa compatibilidade de desenho não valida a ancoragem; o detalhamento continua sinalizando o cálculo fora do escopo.
 
 ### Coeficientes dos materiais
 
-Combinação normal: padrões γc = 1,40 e γs = 1,15. Ambos são editáveis **por peça**, entre 1,0 e 2,0, em Cálculo ou em **Configurações > Dimensionamento > Coeficientes dos materiais da peça selecionada**. Projetos antigos recebem os padrões ao abrir, sem mudança de `schemaVersion` (4). Alterar o processo de produção não preenche nem reduz coeficientes automaticamente.
+Combinação normal: padrões γc = 1,40 e γs = 1,15. Ambos são editáveis **por peça**, entre 1,0 e 2,0, em Cálculo ou em **Configurações > Dimensionamento > Coeficientes dos materiais da peça selecionada**. Projetos antigos recebem os padrões ao abrir, introduzidos no esquema 4 e preservados no esquema 5. Alterar o processo de produção não preenche nem reduz coeficientes automaticamente.
 
 Pares de referência adotados exatamente como informados na [issue #2](https://github.com/ricardocorsini/consolo-struct/issues/2), sem acesso aos textos normativos nesta contribuição:
 
@@ -167,7 +170,7 @@ Não há arredondamento intermediário; os números da tabela foram arredondados
 
 **Apenas o limite de `strut`, no modelo de bielas e tirantes, muda.** Sua tensão solicitante e geometria não mudam. Nós (`nodeSupport`), apoio (`bearing`), escoamento prévio (`ductility`, ainda calculado com fcd2/fcd3/fcd1 originais), inclinação (`angleMin`) e verificações complementares de El Debs mantêm seus valores. Atrito-cisalhamento e viga em balanço não usam esse limite: uma escolha compatível com a carga fica registrada, mas não altera as verificações desses modelos nem acrescenta uma conferência de biela que não foi aplicada.
 
-Quando uma alternativa é aplicada à biela, a verificação adicional `strutLimitCriterion` tem estado **`review`**, com o critério, o limite escolhido e o limite do padrão em MPa. Essa conferência não aprova nem reprova por si só; uma falha de outra verificação continua sendo falha. Mesmo que `strut` passe com o limite menos conservador, a pendência `review` permanece, inclusive na sugestão de armaduras. Memória, relatório, PDF e cálculo auditável registram a fórmula escolhida e essa pendência. O campo é salvo no esquema **4**, sem mudança de `schemaVersion`.
+Quando uma alternativa é aplicada à biela, a verificação adicional `strutLimitCriterion` tem estado **`review`**, com o critério, o limite escolhido e o limite do padrão em MPa. Essa conferência não aprova nem reprova por si só; uma falha de outra verificação continua sendo falha. Mesmo que `strut` passe com o limite menos conservador, a pendência `review` permanece, inclusive na sugestão de armaduras. Memória, relatório, PDF e cálculo auditável registram a fórmula escolhida e essa pendência. O campo foi introduzido no esquema **4** e permanece no esquema **5** atual.
 
 As referências informadas para as alternativas são as indicadas na issue #5 do repositório: NBR 6118 §22.3.2 (`fcd3`) e NBR 9062:2017 §7.3.4.1, alíneas b (`indirect085`) e a (`direct100`). **Essas indicações não foram conferidas no texto normativo nesta contribuição.** Não se afirma equivalência ou aplicabilidade normativa das alternativas; elas exigem avaliação do responsável técnico. Não foram reproduzidos textos de normas.
 
@@ -249,7 +252,7 @@ Cisalhamento pelo Modelo I, desconsiderando a parcela do concreto (`Vc = 0`) nes
 
 - `VRd2 = 0,27 αv2 fcd b d` e `Vsd ≤ VRd2`. Aumentar estribos não resolve essa verificação; a sugestão de armaduras não a contorna.
 - `(asw/s)nec = Vsd/(0,9 d fywd)`, com `fywd = min(fywk/γs; 435)`; `(asw/s)mín = 0,2 (fctm/fywk) b`; adota-se o maior.
-- `Atransv,nec = max((asw/s) L; 0,0015 b h)`, comparada com N3 (estribos fechados, dois ramos) ao longo do comprimento L do consolo.
+- `Atransv,nec = max((asw/s) L; 0,0015 b h)`, comparada com N3 (2 ou 4 ramos efetivos por posição) ao longo do comprimento L do consolo.
 - `smáx = min(0,6d; 300 mm)` se `Vsd ≤ 0,67 VRd2`; senão `smáx = min(0,3d; 200 mm)`. Compara-se o passo real de N3, o mesmo calculado pelo detalhamento (`stirrupLayout`); com um único estribo, compara-se L.
 
 Armadura de face, conforme a altura h junto ao suporte:
@@ -287,11 +290,11 @@ O carregamento vertical é centrado no comprimento informado. A altura da linha 
 
 Se `e_ap > c_ap/6`, o motor **interrompe** a solução: não extrapola a distribuição linear para contato que admite descolamento. Não há aumento da resistência por confinamento de área parcialmente carregada. Rigidez, rotação, cisalhamento, escorregamento e resistência do aparelho de apoio são verificações separadas.
 
-Quando a borda lateral do apoio dista da lateral do consolo mais que o cobrimento, há armadura exclusiva de fendilhamento transversal N4, com base no modelo de bloco parcialmente carregado centrado de El Debs:
+Quando a borda lateral do apoio dista da lateral do consolo mais que o cobrimento, há armadura exclusiva de fendilhamento transversal N5, com base no modelo de bloco parcialmente carregado centrado de El Debs:
 
-`Ffend = 0,30 Vd(1−b_eff/b)`; `AsN4 = Ffend/fywd`.
+`Ffend = 0,30 Vd(1−b_eff/b)`; `AsN5 = Ffend/fywd`.
 
-Esse modelo não resolve excentricidade transversal, fendilhamento no plano horizontal da alça nem ancoragem de pinos. Não se conta N4 novamente como N2 ou N3.
+Esse modelo não resolve excentricidade transversal, fendilhamento no plano horizontal da alça nem ancoragem de pinos. Não se conta N5 novamente como N2 ou N3.
 
 ## Armaduras secundárias
 
@@ -307,7 +310,7 @@ Altura da zona superior: `z_cost=2d/3`.
 
 Quantidade mínima: arredondar para cima considerando **dois ramos** por estribo. Além da área, verificar φ ≤ min(b,h)/15, espaçamento ≤ min(100 mm; a_calc) e espaço livre adotado construtivamente para concretagem. O cálculo usa os eixos reais da costura superior: primeira barra abaixo da última camada do tirante, última em d′+2d/3, espaçamento entre eixos (yúltima−yprimeira)/(n−1). O detalhamento e as vistas usam a mesma distribuição. Para uma barra só, o vão tributário adotado é 2d/3. Verifica-se também se a zona comporta a costura. No muito curto, o terço inferior recebe costura mínima adicional.
 
-Para ação direta, N3 ≥ 0,0015bh. Para ação indireta, N5 ≥ Vd/fywd e não se inclui a mesma área em duas famílias. Arranjo e ancoragem dos estribos secundários precisam ser definidos no detalhamento executivo; o desenho esquemático não os certifica.
+Para ação direta, N3 ≥ 0,0015bh. Para ação indireta, N6 ≥ Vd/fywd e não se inclui a mesma área em duas famílias. Arranjo e ancoragem dos estribos secundários precisam ser definidos no detalhamento executivo; o desenho esquemático não os certifica.
 
 ## Ancoragens e geometria
 
@@ -327,7 +330,7 @@ Para ação direta, N3 ≥ 0,0015bh. Para ação indireta, N5 ≥ Vd/fywd e não
   O valor 0,5 vale somente para gancho + barra soldada; barra soldada sozinha é 0,7.
 
 - A barra transversal soldada (`supportWeldedBar`, desligada por padrão) é uma declaração do usuário (§9.4.2.2). O programa não verifica diâmetro, posição nem execução dessa barra e, quando ela é declarada, gera a pendência **Barra transversal soldada na ancoragem** com estado "conferir". Ela não se confunde com a barra transversal soldada da extremidade frontal (`frontAnchor`).
-- A verificação de ancoragem, a memória, o PDF e o cálculo auditável registram α, a razão usada (com ou sem o piso 1,0) e `lb`. Projetos sem os dois campos abrem com ambos desligados, sem mudança de `schemaVersion` (4).
+- A verificação de ancoragem, a memória, o PDF e o cálculo auditável registram α, a razão usada (com ou sem o piso 1,0) e `lb`. Projetos sem os dois campos abrem com ambos desligados, introduzidos no esquema 4 e preservados no esquema 5.
 - O percurso real do gancho permanece pendente, pois a geometria integral do suporte não é definida.
 - Armadura de confinamento na ancoragem, para as bitolas admitidas no consolo: capacidade ≥25% da força de uma barra (§9.4.2.6.1).
 - Armadura local na face do suporte ≥área efetiva do tirante (§7.3.3.14). Não é dimensionamento do pilar.
@@ -348,7 +351,7 @@ Opção por peça (`excessConcrete`, padrão `keep`), em Configurações > Dimen
 - A nova face inferior é `min(face original; max(y(x); h₂))`: segue a face original junto ao suporte, a face inferior da biela no trecho intermediário e a horizontal em h₂ até a ponta. h, h₂, L, a, o tirante, as alças e a ancoragem no suporte não mudam.
 - Não há recorte quando a biela não fica abaixo da face original (`tanθ ≤ (h−h₂)/L` ou `y(L) ≥ h₂`), inclusive em consolos retangulares (h₂ = h), nem em atrito-cisalhamento ou viga em balanço. Nesses casos a geometria original é mantida e a memória registra a nota `excessConcrete` com estado `na`.
 - Com recorte aplicado, a nota `excessConcrete` tem estado `review` e informa ângulo e largura da biela, os vértices da face inferior e a área removida. As verificações usam as mesmas dimensões; o peso próprio automático e seu centroide passam a usar a seção recortada.
-- Estribos verticais, costuras e porta-estribos seguem a face recortada com o mesmo cobrimento (distância mínima à poligonal da face). Desenhos, modelo 3D, DXF/SVG e quantitativos de volume usam o mesmo perfil.
+- Estribos verticais, costuras e N4 construtiva seguem a face recortada com o mesmo cobrimento (distância mínima à poligonal da face). Desenhos, modelo 3D, DXF/SVG e quantitativos de volume usam o mesmo perfil.
 
 ### Detalhamento “Armado como viga”
 
@@ -356,7 +359,7 @@ Opção de detalhamento por peça (`detailing.barArrangement`, padrão `consolo`
 
 - Não altera o cálculo: o modelo, as verificações e o resultado são os mesmos do modo `consolo`, inclusive o tipo de ancoragem frontal declarado no cálculo.
 - Tirante (negativa): na primeira camada, barra superior de `x = −(P − c − φ/2)` a `x = L − c − φ/2`, com dobras de 90° (mandril da tabela 9.1) descendo no suporte e na ponta. A perna reta de cada extremidade é `max(8φ; lb,nec − trecho reto − arco)`, com `lb,nec = max(α·lb·razão; 0,3lb; 10φ; 100)`, usando `lb` e a razão do motor (inclusive o piso opcional). O α é 0,7 apenas com cobrimento lateral ≥ 3φ; caso contrário, 1,0. Não se aplica desconto pela declaração de barra soldada no cálculo, pois essa barra não é detalhada neste modo (NBR 6118:2026 §9.4.2.5). As pernas de camadas sucessivas são aninhadas, sem eixos coincidentes. No suporte o trecho reto conta a partir da face do pilar; na ponta, a partir da borda interna da placa de apoio (`a − ℓplaca/2`). A perna da ponta termina acima da face inferior com cobrimento, e a do suporte dentro da altura h.
-- Positiva: `n` barras inferiores de bitola φp (padrão 2 × 10 mm) a `c + φestribo + φp/2` da face inferior, seguindo a face inclinada, por dentro das pernas do tirante, com dobras subindo nas duas extremidades até abaixo da última camada do tirante. `lb,nec,p = max(α·lb,p; 0,3lb,p; 10φp; 100)`, com `lb,p = lb·φp/φ` e α = 0,7 quando o cobrimento lateral ≥ 3φp (senão 1,0). Não é computada como armadura resistente e substitui o porta-estribos. A dobra frontal acompanha o ângulo entre o trecho inferior inclinado e a perna vertical, com arco e ponta reta medidos nesse percurso. As pontas ficam abaixo da última camada do tirante; a quantidade deve caber na largura com espaço livre ≥ max(20; φp; 1,2dag).
+- Positiva: `n` barras inferiores de bitola φp (padrão 2 × 10 mm) a `c + φestribo + φp/2` da face inferior, seguindo a face inclinada, por dentro das pernas do tirante, com dobras subindo nas duas extremidades até abaixo da última camada do tirante. `lb,nec,p = max(α·lb,p; 0,3lb,p; 10φp; 100)`, com `lb,p = lb·φp/φ` e α = 0,7 quando o cobrimento lateral ≥ 3φp (senão 1,0). Não é computada como armadura resistente. É uma família independente P1; N4 permanece obrigatória e interferências entre elas geram pendência impeditiva. A dobra frontal acompanha o ângulo entre o trecho inferior inclinado e a perna vertical, com arco e ponta reta medidos nesse percurso. As pontas ficam abaixo da última camada do tirante; a quantidade deve caber na largura com espaço livre ≥ max(20; φp; 1,2dag).
 - Quando a perna necessária não cabe, a perna é limitada ao contorno e o detalhamento registra `beam-top-anchor` (impeditiva) ou `beam-bottom-anchor` (conferir). Em todos os casos registra `beam-review`, porque a NBR 9062 §7.3.3.6–7 prevê alça ou barra transversal soldada na ponta de consolos.
 
 ## Durabilidade
@@ -373,7 +376,7 @@ Permanecem externos: ELS e fissuração; dentes Gerber; consolos duplos, contín
 
 ## Arquivos e auditoria
 
-- `.lume.json`, esquema 2: entradas editáveis. Importa esquema 1 com dados novos não conferidos. Quantidades antigas eram ilustrativas e precisam ser revistas, especialmente a contagem de estribos.
+- `.consolo.json`/`.lume.json`, esquema 5: entradas editáveis. Importa esquemas 1–4, com dois ramos N3 e N4 Ø8; conserva os dados semânticos de fendilhamento/suspensão. O porta-estribos antigo é retirado. O esquema 1 mantém a exigência de conferência dos dados novos. Quantidades antigas eram ilustrativas e precisam ser revistas, especialmente a contagem de estribos.
 - `.calc.json`: snapshot completo das entradas, unidades, versão, política, todas as combinações, resultados intermediários e verificações. Não é um projeto editável e não é tratado como resultado confiável ao importar `.lume.json`.
 - PDF: entradas, hipóteses, referências, envelope, memória de cada combinação e apêndice integral de entradas; usa transliteração dos símbolos para evitar caracteres gregos quebrados no PDF.
 - CSV: quantidades e resumo de ELU recalculado. Não é lista de corte.

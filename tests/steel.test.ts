@@ -1,3 +1,4 @@
+import { legacyN4Labels } from "./reference/legacy-n4-labels";
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { calculate } from "../src/domain/engine";
@@ -116,9 +117,12 @@ describe("Regressão capturada no upstream e903617, antes da integração de cla
       p.rebar.tieDiameter = 20;
       p.design.bond = "poor";
       // Mesmo projeto capturado antes do recorte; preserve o hash integral,
-      // sem normalizar resultados nem o fingerprint. Campo ausente usa keep.
+      // números/fingerprint preservados; somente rótulos públicos são normalizados
+      // pelo helper documentado de N4. Campo ausente usa keep.
       delete (p.design as Partial<typeof p.design>).excessConcrete;
-      const result = calculate(p);
+      delete (p.rebar as Partial<typeof p.rebar>).stirrupBranches;
+      delete (p.rebar as Partial<typeof p.rebar>).constructiveDiameter;
+      const result = legacyN4Labels(calculate(p));
       expect(result.values.fbd).toBe(fbd);
       expect(result.values.lb).toBe(lb);
       expect(result.values.anchorRequired).toBe(lbNec);

@@ -37,7 +37,7 @@ describe("Arquivos e invalidação dos resultados", () => {
     project.pieces[0].materials.fyk = 420;
     const opened = decodeProject(JSON.stringify(project));
     expect(opened).toEqual(project);
-    expect(opened.schemaVersion).toBe(4);
+    expect(opened.schemaVersion).toBe(5);
     const result = calculate(opened.pieces[0]);
     expect(result.status).toBe("unsupported");
     expect(result.reasons).toContain(
@@ -48,7 +48,7 @@ describe("Arquivos e invalidação dos resultados", () => {
       420,
     );
   });
-  it("abre projeto antigo com os coeficientes padrão sem mudar a versão", () => {
+  it("abre projeto antigo com os coeficientes padrão após migrar para esquema 5", () => {
     const original = exampleProject();
     const legacy = JSON.parse(JSON.stringify(original));
     for (const p of legacy.pieces) {
@@ -56,7 +56,7 @@ describe("Arquivos e invalidação dos resultados", () => {
       delete p.design.gammaS;
     }
     const decoded = decodeProject(JSON.stringify(legacy));
-    expect(decoded.schemaVersion).toBe(4);
+    expect(decoded.schemaVersion).toBe(5);
     for (const p of decoded.pieces) {
       expect(p.design.gammaC).toBe(1.4);
       expect(p.design.gammaS).toBe(1.15);

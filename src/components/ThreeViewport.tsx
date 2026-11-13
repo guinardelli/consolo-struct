@@ -756,7 +756,7 @@ export default function ThreeViewport(props: Props) {
           Área de apoio {number(piece.design.bearingLength / 10, 1)} ×{" "}
           {number(piece.design.bearingWidth / 10, 1)} cm
         </span>
-        <span title="A profundidade do suporte é ilustrada com a largura b do consolo. N1–N3 são eixos esquemáticos; ancoragens e armaduras complementares constam da memória.">
+        <span title="A profundidade do suporte é ilustrada com a largura b do consolo. N1/N2 são eixos esquemáticos; N3/N4 compartilham a geometria do detalhamento. Ancoragens e interferências exigem conferência.">
           <Info size={12} /> Suporte e armaduras esquemáticos
         </span>
         {forces && (

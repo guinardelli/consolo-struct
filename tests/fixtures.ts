@@ -22,6 +22,8 @@ export function shortFixture() {
     stitchDiameter: 6.3,
     stirrupCount: 5,
     stirrupDiameter: 6.3,
+    stirrupBranches: 2,
+    constructiveDiameter: 8,
   };
   p.design = {
     ...p.design,
@@ -78,6 +80,8 @@ export function cantileverFixture({
     stitchDiameter: 6.3,
     stirrupCount: 5,
     stirrupDiameter: 6.3,
+    stirrupBranches: 2,
+    constructiveDiameter: 8,
   };
   p.design = {
     ...p.design,

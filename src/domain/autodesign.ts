@@ -24,7 +24,10 @@ function beamSecondary(p: Piece, r: CalculationResult) {
       100,
       Math.max(
         1,
-        Math.ceil(v.stirrupRequired / area(2, p.rebar.stirrupDiameter)),
+        Math.ceil(
+          v.stirrupRequired /
+            area(p.rebar.stirrupBranches ?? 2, p.rebar.stirrupDiameter),
+        ),
         p.geometry.length <= spacingLimit
           ? 1
           : 1 + Math.ceil(span / spacingLimit),
@@ -76,7 +79,10 @@ function designSecondary(p: Piece, result: CalculationResult) {
   else
     p.rebar.stirrupCount = Math.max(
       1,
-      Math.ceil(v.stirrupRequired / area(2, p.rebar.stirrupDiameter)),
+      Math.ceil(
+        v.stirrupRequired /
+          area(p.rebar.stirrupBranches ?? 2, p.rebar.stirrupDiameter),
+      ),
     );
   p.design.lowerStitchCount =
     v.lowerRequired > 0

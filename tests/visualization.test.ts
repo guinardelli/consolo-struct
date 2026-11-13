@@ -96,7 +96,7 @@ describe("Geometria técnica 3D", () => {
     expect(ties).toHaveLength(6);
     expect(ties.slice(0, 3).every((b) => b.points[0][2] === -41.3)).toBe(true);
     expect(ties.slice(3).every((b) => b.points[0][2] === -81.3)).toBe(true);
-    for (const path of m.steel.filter((b) => b.id !== "N1"))
+    for (const path of m.steel.filter((b) => b.id === "N2"))
       expect(path.points[0]).toEqual(path.points.at(-1));
   });
   it("gera materiais e grupos finitos nas duas opções de renderização", () => {

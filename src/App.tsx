@@ -874,6 +874,7 @@ export default function App() {
                   { id: "N1", label: "Tirante" },
                   { id: "N2", label: "Costura" },
                   { id: "N3", label: "Estribos" },
+                  { id: "N4", label: "Construtiva" },
                 ].map((b) => (
                   <button
                     key={b.id}
@@ -1212,7 +1213,7 @@ export default function App() {
                     const fresh = newPiece(1);
                     commit({
                       format: "lumeconsolo",
-                      schemaVersion: 4,
+                      schemaVersion: 5,
                       name: form.name.trim(),
                       client: form.client.trim(),
                       author: form.author.trim(),

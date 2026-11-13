@@ -77,7 +77,7 @@ test("tirante duplo, revisão e notas persistem e participam do histórico", asy
   const project = JSON.parse(
     await readFile((await (await event).path())!, "utf8"),
   );
-  expect(project.schemaVersion).toBe(4);
+  expect(project.schemaVersion).toBe(5);
   expect(project.pieces[0].design.tieLayers).toBe(2);
   expect(project.pieces[0].detailing.revision).toBe("R03");
   await page.getByRole("button", { name: "Desfazer", exact: true }).click();

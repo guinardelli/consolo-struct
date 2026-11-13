@@ -121,6 +121,59 @@ export function closedStirrup(
       height >= 2 * r + tail / Math.sqrt(2),
   };
 }
+/** Internal U for N3: two vertical effective legs and two inward 135° hooks.
+ * Explicit arcs keep the full straight tails instead of consuming them in fillets. */
+export function openStirrup(
+  width: number,
+  height: number,
+  diameter: number,
+  mandrel: number,
+): BarPath {
+  const radius = (mandrel + diameter) / 2,
+    tail = Math.max(5 * diameter, 50);
+  const left = { x: radius, y: radius },
+    right = { x: width - radius, y: radius };
+  const start = at(left, radius, -Math.PI / 4),
+    end = at(right, radius, (-3 * Math.PI) / 4);
+  const outline = roundedPath(
+    [
+      { x: 0, y: radius },
+      { x: 0, y: height },
+      { x: width, y: height },
+      { x: width, y: radius },
+    ],
+    radius,
+  );
+  const segments: Segment[] = [
+    {
+      type: "line",
+      a: { x: start.x + tail / Math.SQRT2, y: start.y + tail / Math.SQRT2 },
+      b: start,
+    },
+    {
+      type: "arc",
+      center: left,
+      radius,
+      start: -Math.PI / 4,
+      sweep: (-3 * Math.PI) / 4,
+    },
+    ...outline.segments,
+    { type: "arc", center: right, radius, start: 0, sweep: (-3 * Math.PI) / 4 },
+    {
+      type: "line",
+      a: end,
+      b: { x: end.x - tail / Math.SQRT2, y: end.y + tail / Math.SQRT2 },
+    },
+  ];
+  return {
+    segments,
+    length: pathLength(segments),
+    valid:
+      outline.valid &&
+      height >= 2 * radius &&
+      width >= 2 * (radius + radius / Math.SQRT2 + tail / Math.SQRT2),
+  };
+}
 export function samplePath(path: BarPath, divisions = 12): Point[] {
   return path.segments.flatMap((s, index) => {
     const pts =

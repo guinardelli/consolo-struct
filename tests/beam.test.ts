@@ -28,7 +28,7 @@ const comparable = (d: Detail) =>
   JSON.stringify({ ...d, result: undefined, piece: undefined });
 
 describe("Armado como viga — disponibilidade e compatibilidade", () => {
-  it("vem desligado e projetos antigos abrem no modo atual, sem migração", () => {
+  it("vem desligado e projetos antigos abrem no modo atual, após migração", () => {
     const project = exampleProject();
     const legacy = JSON.parse(JSON.stringify(project));
     for (const p of legacy.pieces) {
@@ -37,7 +37,7 @@ describe("Armado como viga — disponibilidade e compatibilidade", () => {
       delete p.detailing.beamBottomDiameter;
     }
     const decoded = decodeProject(JSON.stringify(legacy));
-    expect(decoded.schemaVersion).toBe(4);
+    expect(decoded.schemaVersion).toBe(5);
     for (const p of decoded.pieces) {
       expect(p.detailing.barArrangement).toBe("consolo");
       expect(p.detailing.beamBottomCount).toBe(2);
@@ -101,7 +101,7 @@ describe("Armado como viga — tirante (negativa) e positiva", () => {
   it("substitui alça/barra soldada e porta-estribos pelas barras de viga", () => {
     expect(d.arrangement).toBe("beam");
     expect(d.bars.some((b) => b.family === "welded")).toBe(false);
-    expect(d.bars.some((b) => b.family === "mounting")).toBe(false);
+    expect(d.bars.filter((b) => b.family === "constructive")).toHaveLength(1);
     expect(ties.reduce((n, b) => n + b.quantity, 0)).toBe(r.tieCount);
     expect(positive).toHaveLength(1);
     expect(positive[0].quantity).toBe(p.detailing.beamBottomCount);
@@ -211,14 +211,17 @@ describe("Armado como viga — tirante (negativa) e positiva", () => {
     expect(arcs.length).toBeGreaterThanOrEqual(4);
     const scene = buildSceneModel(p);
     const n1 = scene.steel.filter((s) => s.id === "N1");
-    const n4 = scene.steel.filter((s) => s.id === "N4");
+    const positive = scene.steel.filter((s) => s.id === "P1");
     expect(n1).toHaveLength(r.tieCount);
     expect(n1.every((s) => s.points.length === 4)).toBe(true);
-    expect(n4).toHaveLength(p.detailing.beamBottomCount);
-    // The legacy scene is unchanged without the option.
+    expect(positive).toHaveLength(p.detailing.beamBottomCount);
+    expect(scene.steel.filter((s) => s.id === "N4")).toHaveLength(
+      p.rebar.stirrupBranches,
+    );
+    // N4 is mandatory also in the conventional arrangement.
     expect(
-      buildSceneModel(shortFixture()).steel.some((s) => s.id === "N4"),
-    ).toBe(false);
+      buildSceneModel(shortFixture()).steel.filter((s) => s.id === "N4"),
+    ).toHaveLength(2);
   });
 
   it("vale também para viga em balanço", () => {
